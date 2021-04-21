@@ -1,10 +1,10 @@
 import React from "react";
-import { Button, IconButton } from "@material-ui/core";
+import { Button, IconButton, TextField } from "@material-ui/core";
 import { PhotoCamera } from "@material-ui/icons";
+import Swal from "sweetalert2";
 import "./style.css";
 import imgLogin from "./img/log.svg";
 import imgRegistro from "./img/register.svg";
-
 import Credenciales from "../Sesion/Credenciales";
 
 export class RegistroyLogin extends React.Component {
@@ -17,10 +17,24 @@ export class RegistroyLogin extends React.Component {
   }
 }
 
+//const errorTXT = { user: "", password: "" };
 export default function FullInicio({ props }) {
   //variables
   const [fperfil, setfperfil] = React.useState(Credenciales.PerfilDefault);
   const [fcargada, setfcargada] = React.useState(false);
+  const [txtuser, settxtuser] = React.useState("");
+  const [txtpass, settxtpass] = React.useState("");
+  const [txtuserR, settxtuserR] = React.useState("");
+  const [txtpassR1, settxtpassR1] = React.useState("");
+  const [txtpassR2, settxtpassR2] = React.useState("");
+  const [errorTXT, seterrorTXT] = React.useState({
+    user: "",
+    password: "",
+    userR: "",
+    passR1: "",
+    passR2: "",
+  });
+
   //------------evitar entrar al registro/login al tener session
   React.useEffect(() => {
     if (Credenciales.isAuthenticated()) {
@@ -44,9 +58,39 @@ export default function FullInicio({ props }) {
   };
 
   //--------------Metodo para registrar
-  const metodoRegistrar = () => {};
+  const metodoRegistrar = () => {
+    //mostrar todos los mensajes, los metodos retornan true/false
+    validarInput(txtuserR, "userR");
+    validarInput(txtpassR1, "passR1");
+    validarInput(txtpassR2, "passR2");
+    if (
+      validarInput(txtuserR, "userR") &&
+      validarInput(txtpassR1, "passR1") &&
+      validarInput(txtpassR2, "passR2")
+    ) {
+      if (txtpassR1 == txtpassR2) {
+      } else {
+        Swal.fire({
+          title: "Error!",
+          text: "Las Contraseñas No Coinciden",
+          icon: "error",
+        });
+      }
+    } else {
+      Swal.fire({
+        title: "Error!",
+        text: "Completa los Campos Obligatorios",
+        icon: "error",
+      });
+    }
+  };
   //--------------Metodo para el login
   const metodoIngresar = () => {
+    //mostrar todos los mensajes
+    validarInput(txtuser, "user");
+    validarInput(txtpass, "password");
+    if (validarInput(txtuser, "user") && validarInput(txtpass, "password")) {
+      /*
     //crear el json de session
     const session = {
       idUser: 1,
@@ -57,6 +101,47 @@ export default function FullInicio({ props }) {
     console.log(Credenciales.isAuthenticated());
     //navegar hacia el inicio
     props.history.push("/Inicio");
+
+    */
+    } else {
+      Swal.fire({
+        title: "Error!",
+        text: "Completa los Campos Obligatorios",
+        icon: "error",
+      });
+    }
+  };
+
+  //--------------Tomar valores y validar Campos llenos
+  const inputChange = (e) => {
+    let { id, value } = e.target;
+    if (id === "user") {
+      settxtuser(value);
+      validarInput(value, "user");
+    } else if (id === "password") {
+      settxtpass(value);
+      validarInput(value, "password");
+    } else if (id === "passR1") {
+      settxtpassR1(value);
+      validarInput(value, "passR1");
+    } else if (id === "passR2") {
+      settxtpassR2(value);
+      validarInput(value, "passR2");
+    } else if (id === "userR") {
+      settxtuserR(value);
+      validarInput(value, "userR");
+    }
+  };
+  const validarInput = (valor, campo) => {
+    errorTXT[campo] = "";
+    var result = true;
+    if (valor === "") {
+      errorTXT[campo] = "Información Requerida";
+      result = false;
+    }
+    //modificar el estado del json
+    seterrorTXT({ ...errorTXT });
+    return result;
   };
 
   //--------------Funciones que permiten cambiar entre login/registro
@@ -68,20 +153,38 @@ export default function FullInicio({ props }) {
     const container = document.querySelector(".container");
     container.classList.remove("sign-up-mode");
   };
+
   return (
     <div className="container">
       <div className="forms-container">
         <div className="signin-signup">
           <div className="form sign-in-form">
             <h2 className="title">Ingresar</h2>
-            <div className="input-field">
-              <i className="fas fa-user"></i>
-              <input type="text" placeholder="Username" />
-            </div>
-            <div className="input-field">
-              <i className="fas fa-lock"></i>
-              <input type="password" placeholder="Password" />
-            </div>
+            <TextField
+              className="input-field"
+              id="user"
+              label="Usuario"
+              margin="normal"
+              variant="outlined"
+              value={txtuser}
+              onChange={inputChange}
+              required
+              error={errorTXT.user.length != 0}
+              helperText={errorTXT.user}
+            />
+            <TextField
+              id="password"
+              type="password"
+              label="Contraseña"
+              className="input-field"
+              margin="normal"
+              variant="outlined"
+              value={txtpass}
+              onChange={inputChange}
+              required
+              error={errorTXT.password.length != 0}
+              helperText={errorTXT.password}
+            />
             <button className="btn" onClick={metodoIngresar}>
               Ingresar
             </button>
@@ -130,18 +233,42 @@ export default function FullInicio({ props }) {
 
               <div style={{ width: "60%" }}></div>
             </div>
-            <div className="input-field">
-              <i className="fas fa-user"></i>
-              <input type="text" placeholder="Usuario" />
-            </div>
-            <div className="input-field">
-              <i className="fas fa-envelope"></i>
-              <input type="password1" placeholder="Contraseña" />
-            </div>
-            <div className="input-field">
-              <i className="fas fa-lock"></i>
-              <input type="password2" placeholder="Confirmar contraseña" />
-            </div>
+            <TextField
+              className="input-field"
+              id="userR"
+              label="Usuario"
+              margin="normal"
+              variant="outlined"
+              value={txtuserR}
+              onChange={inputChange}
+              required
+              error={errorTXT.userR.length != 0}
+              helperText={errorTXT.userR}
+            />
+            <TextField
+              className="input-field"
+              id="passR1"
+              label="Password"
+              margin="normal"
+              variant="outlined"
+              value={txtpassR1}
+              onChange={inputChange}
+              required
+              error={errorTXT.passR1.length != 0}
+              helperText={errorTXT.passR1}
+            />
+            <TextField
+              className="input-field"
+              id="passR2"
+              label="Password"
+              margin="normal"
+              variant="outlined"
+              value={txtpassR2}
+              onChange={inputChange}
+              required
+              error={errorTXT.passR2.length != 0}
+              helperText={errorTXT.passR2}
+            />
             <button className="btn" onClick={metodoRegistrar}>
               Guardar
             </button>
