@@ -26,13 +26,13 @@ export default function FullInicio({ props }) {
   const [txtpass, settxtpass] = React.useState("");
   const [txtuserR, settxtuserR] = React.useState("");
   const [txtpassR1, settxtpassR1] = React.useState("");
-  const [txtpassR2, settxtpassR2] = React.useState("");
+  const [txtnombreR, settxtnombreR] = React.useState("");
   const [errorTXT, seterrorTXT] = React.useState({
     user: "",
     password: "",
     userR: "",
     passR1: "",
-    passR2: "",
+    nombreR: "",
   });
 
   //------------evitar entrar al registro/login al tener session
@@ -62,20 +62,19 @@ export default function FullInicio({ props }) {
     //mostrar todos los mensajes, los metodos retornan true/false
     validarInput(txtuserR, "userR");
     validarInput(txtpassR1, "passR1");
-    validarInput(txtpassR2, "passR2");
+    validarInput(txtnombreR, "nombreR");
     if (
       validarInput(txtuserR, "userR") &&
       validarInput(txtpassR1, "passR1") &&
-      validarInput(txtpassR2, "passR2")
+      validarInput(txtnombreR, "nombreR")
     ) {
-      if (txtpassR1 == txtpassR2) {
-      } else {
-        Swal.fire({
-          title: "Error!",
-          text: "Las Contraseñas No Coinciden",
-          icon: "error",
-        });
-      }
+      Swal.fire({
+        title: "Bienvenido",
+        text: "Gracias por registrarte " + txtnombreR,
+        icon: "success",
+      }).then((result) => {
+        console.log("aca cambiar de ventana");
+      });
     } else {
       Swal.fire({
         title: "Error!",
@@ -103,6 +102,14 @@ export default function FullInicio({ props }) {
     props.history.push("/Inicio");
 
     */
+
+      Swal.fire({
+        title: "Exito",
+        text: "Bienvenido +nombre+",
+        icon: "success",
+      }).then((result) => {
+        console.log("aca cambiar de ventana");
+      });
     } else {
       Swal.fire({
         title: "Error!",
@@ -124,9 +131,9 @@ export default function FullInicio({ props }) {
     } else if (id === "passR1") {
       settxtpassR1(value);
       validarInput(value, "passR1");
-    } else if (id === "passR2") {
-      settxtpassR2(value);
-      validarInput(value, "passR2");
+    } else if (id === "nombreR") {
+      settxtnombreR(value);
+      validarInput(value, "nombreR");
     } else if (id === "userR") {
       settxtuserR(value);
       validarInput(value, "userR");
@@ -247,6 +254,18 @@ export default function FullInicio({ props }) {
             />
             <TextField
               className="input-field"
+              id="nombreR"
+              label="Nombre Completo"
+              margin="normal"
+              variant="outlined"
+              value={txtnombreR}
+              onChange={inputChange}
+              required
+              error={errorTXT.nombreR.length != 0}
+              helperText={errorTXT.nombreR}
+            />
+            <TextField
+              className="input-field"
               id="passR1"
               label="Password"
               margin="normal"
@@ -256,18 +275,6 @@ export default function FullInicio({ props }) {
               required
               error={errorTXT.passR1.length != 0}
               helperText={errorTXT.passR1}
-            />
-            <TextField
-              className="input-field"
-              id="passR2"
-              label="Password"
-              margin="normal"
-              variant="outlined"
-              value={txtpassR2}
-              onChange={inputChange}
-              required
-              error={errorTXT.passR2.length != 0}
-              helperText={errorTXT.passR2}
             />
             <button className="btn" onClick={metodoRegistrar}>
               Guardar
