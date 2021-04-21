@@ -1,11 +1,13 @@
 import React from "react";
-import { IconButton } from "@material-ui/core";
+import { Button, IconButton } from "@material-ui/core";
 import { PhotoCamera } from "@material-ui/icons";
 import "./style.css";
 import imgLogin from "./img/log.svg";
 import imgRegistro from "./img/register.svg";
 
-export class Inicio extends React.Component {
+import Credenciales from "../Sesion/Credenciales";
+
+export class RegistroyLogin extends React.Component {
   render() {
     return (
       <div style={{ minWidth: "100%" }}>
@@ -17,19 +19,53 @@ export class Inicio extends React.Component {
 
 export default function FullInicio({ props }) {
   //variables
-  const [fperfil, setfperfil] = React.useState(
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQuUEPOKj_QDRKMi_9yr_Z30Hlg43b4BQzcWg&usqp=CAU"
-  );
+  const [fperfil, setfperfil] = React.useState(Credenciales.PerfilDefault);
+  const [fcargada, setfcargada] = React.useState(false);
+  //------------evitar entrar al registro/login al tener session
+  React.useEffect(() => {
+    if (Credenciales.isAuthenticated()) {
+      //console.log("logueado")
+      props.history.push("/Inicio");
+    } else {
+      //console.log("no logueado")
+    }
+  }, []);
 
-  //Funciones que permiten cambiar entre login/registro
+  //------------metodo para cargar fotos
+  const metodoFoto = (e) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (reader.readyState === 2) {
+        setfperfil(reader.result);
+        setfcargada(true);
+      }
+    };
+    reader.readAsDataURL(e.target.files[0]);
+  };
+
+  //--------------Metodo para registrar
+  const metodoRegistrar = () => {};
+  //--------------Metodo para el login
+  const metodoIngresar = () => {
+    //crear el json de session
+    const session = {
+      idUser: 1,
+      nombre: "Alex",
+    };
+    //guardar sesion en el localStorage
+    Credenciales.login(session);
+    console.log(Credenciales.isAuthenticated());
+    //navegar hacia el inicio
+    props.history.push("/Inicio");
+  };
+
+  //--------------Funciones que permiten cambiar entre login/registro
   const mostrarRegistro = () => {
     const container = document.querySelector(".container");
     container.classList.add("sign-up-mode");
-    //container.classList.remove("sign-up-mode");
   };
   const mostrarLogin = () => {
     const container = document.querySelector(".container");
-    //container.classList.add("sign-up-mode");
     container.classList.remove("sign-up-mode");
   };
   return (
@@ -46,7 +82,7 @@ export default function FullInicio({ props }) {
               <i className="fas fa-lock"></i>
               <input type="password" placeholder="Password" />
             </div>
-            <button className="btn" onClick={() => {}}>
+            <button className="btn" onClick={metodoIngresar}>
               Ingresar
             </button>
 
@@ -64,16 +100,34 @@ export default function FullInicio({ props }) {
                 width: 300,
                 height: 200,
                 backgroundImage: "url(" + fperfil + ")",
-                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                backgroundSize: "contain",
                 display: "flex",
                 flexFlow: "wrap",
                 justifyContent: "center",
                 alignContent: "flex-end",
               }}
             >
-              <button className="btn" onClick={() => {}}>
-                Perfil
-              </button>
+              <input
+                accept="image/*"
+                style={{ display: "none" }}
+                id="contained-button-file"
+                multiple
+                type="file"
+                onChange={metodoFoto}
+              />
+              <label htmlFor="contained-button-file">
+                <Button
+                  variant="contained"
+                  color="primary"
+                  component="span"
+                  startIcon={<PhotoCamera />}
+                >
+                  Cargar Foto
+                </Button>
+              </label>
+
               <div style={{ width: "60%" }}></div>
             </div>
             <div className="input-field">
@@ -88,7 +142,7 @@ export default function FullInicio({ props }) {
               <i className="fas fa-lock"></i>
               <input type="password2" placeholder="Confirmar contraseña" />
             </div>
-            <button className="btn" onClick={() => {}}>
+            <button className="btn" onClick={metodoRegistrar}>
               Guardar
             </button>
           </div>
