@@ -19,14 +19,15 @@ export class RegistroyLogin extends React.Component {
 
 //const errorTXT = { user: "", password: "" };
 export default function FullInicio({ props }) {
-  //variables
+  //variables registro
   const [fperfil, setfperfil] = React.useState(Credenciales.PerfilDefault);
   const [fcargada, setfcargada] = React.useState(false);
-  const [txtuser, settxtuser] = React.useState("");
-  const [txtpass, settxtpass] = React.useState("");
   const [txtuserR, settxtuserR] = React.useState("");
   const [txtpassR1, settxtpassR1] = React.useState("");
   const [txtnombreR, settxtnombreR] = React.useState("");
+  //variables login
+  const [txtuser, settxtuser] = React.useState("");
+  const [txtpass, settxtpass] = React.useState("");
   const [errorTXT, seterrorTXT] = React.useState({
     user: "",
     password: "",
@@ -89,26 +90,25 @@ export default function FullInicio({ props }) {
     validarInput(txtuser, "user");
     validarInput(txtpass, "password");
     if (validarInput(txtuser, "user") && validarInput(txtpass, "password")) {
-      /*
-    //crear el json de session
-    const session = {
-      idUser: 1,
-      nombre: "Alex",
-    };
-    //guardar sesion en el localStorage
-    Credenciales.login(session);
-    console.log(Credenciales.isAuthenticated());
-    //navegar hacia el inicio
-    props.history.push("/Inicio");
-
-    */
+      //crear el json de session
+      const session = {
+        idUser: 1,
+        nombre: "Alex Lopez",
+        password: "0000",
+        foto:
+          "https://www.cinemascomics.com/wp-content/uploads/2020/08/goku-dragon-ball-super-ultra-instinto.jpg",
+        estado: 2,
+      };
+      //guardar sesion en el localStorage
+      Credenciales.login(session);
 
       Swal.fire({
         title: "Exito",
         text: "Bienvenido +nombre+",
         icon: "success",
       }).then((result) => {
-        console.log("aca cambiar de ventana");
+        //navegar hacia el inicio
+        props.history.push("/Inicio");
       });
     } else {
       Swal.fire({
@@ -176,7 +176,7 @@ export default function FullInicio({ props }) {
               value={txtuser}
               onChange={inputChange}
               required
-              error={errorTXT.user.length != 0}
+              error={errorTXT.user.length !== 0}
               helperText={errorTXT.user}
             />
             <TextField
@@ -189,7 +189,7 @@ export default function FullInicio({ props }) {
               value={txtpass}
               onChange={inputChange}
               required
-              error={errorTXT.password.length != 0}
+              error={errorTXT.password.length !== 0}
               helperText={errorTXT.password}
             />
             <button className="btn" onClick={metodoIngresar}>
@@ -249,7 +249,7 @@ export default function FullInicio({ props }) {
               value={txtuserR}
               onChange={inputChange}
               required
-              error={errorTXT.userR.length != 0}
+              error={errorTXT.userR.length !== 0}
               helperText={errorTXT.userR}
             />
             <TextField
@@ -261,7 +261,7 @@ export default function FullInicio({ props }) {
               value={txtnombreR}
               onChange={inputChange}
               required
-              error={errorTXT.nombreR.length != 0}
+              error={errorTXT.nombreR.length !== 0}
               helperText={errorTXT.nombreR}
             />
             <TextField
@@ -273,7 +273,7 @@ export default function FullInicio({ props }) {
               value={txtpassR1}
               onChange={inputChange}
               required
-              error={errorTXT.passR1.length != 0}
+              error={errorTXT.passR1.length !== 0}
               helperText={errorTXT.passR1}
             />
             <button className="btn" onClick={metodoRegistrar}>

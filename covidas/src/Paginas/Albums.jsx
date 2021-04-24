@@ -4,11 +4,11 @@ import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Credenciales from "../Sesion/Credenciales";
 
-export class Inicio extends React.Component {
+export class Albums extends React.Component {
   render() {
     return (
       <div style={{ minWidth: "100%" }}>
-        <FullInicio props={this.props} />
+        <FullAlbums props={this.props} />
       </div>
     );
   }
@@ -36,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function FullInicio({ props }) {
+export default function FullAlbums({ props }) {
   const classes = useStyles();
   //obtener datos de la session
   const [session, setsession] = React.useState(Credenciales.isAuthenticated());
@@ -56,7 +56,7 @@ export default function FullInicio({ props }) {
     <div className={classes.root}>
       <Navbar
         props={props}
-        tituloP={"Inicio"}
+        tituloP={"Albums"}
         foto={Credenciales.isAuthenticated().foto}
         colorB={colorEstado()}
       />

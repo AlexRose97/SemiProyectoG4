@@ -43,17 +43,14 @@ export default function Navbar({ props, tituloP, foto , colorB}) {
   const irInicio = () => {
     props.history.push("/Inicio");
   };
-  const irPerfil = () => {
-    props.history.push("/Perfil");
-  };
   const irAlbumes = () => {
-    props.history.push("/Albumes");
+    props.history.push("/Albums");
   };
   const irFotos = () => {
     props.history.push("/Fotos");
   };
   const irChatBot = () => {
-    props.history.push("/ChatBot");
+    props.history.push("/Ayuda");
   };
 
   return (
@@ -97,9 +94,6 @@ export default function Navbar({ props, tituloP, foto , colorB}) {
             <div>
               <Button style={{ width: "100%" }} onClick={irInicio}>
                 Inicio
-              </Button>
-              <Button style={{ width: "100%" }} onClick={irPerfil}>
-                Perfil
               </Button>
               <Button style={{ width: "100%" }} onClick={irAlbumes}>
                 Albumes
