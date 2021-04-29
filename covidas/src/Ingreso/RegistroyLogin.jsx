@@ -69,13 +69,21 @@ export default function FullInicio({ props }) {
       validarInput(txtpassR1, "passR1") &&
       validarInput(txtnombreR, "nombreR")
     ) {
-      Swal.fire({
-        title: "Bienvenido",
-        text: "Gracias por registrarte " + txtnombreR,
-        icon: "success",
-      }).then((result) => {
-        console.log("aca cambiar de ventana");
-      });
+      if (fcargada) {
+        Swal.fire({
+          title: "Bienvenido",
+          text: "Gracias por registrarte " + txtnombreR,
+          icon: "success",
+        }).then((result) => {
+          console.log("aca cambiar de ventana");
+        });
+      } else {
+        Swal.fire({
+          title: "Error!",
+          text: "Agrega una foto de perfil",
+          icon: "error",
+        });
+      }
     } else {
       Swal.fire({
         title: "Error!",
@@ -93,6 +101,8 @@ export default function FullInicio({ props }) {
       //crear el json de session
       const session = {
         idUser: 1,
+        alerta: 1,
+        user: "AlexRose",
         nombre: "Alex Lopez",
         password: "0000",
         foto:
