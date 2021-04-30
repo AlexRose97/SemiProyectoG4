@@ -154,134 +154,132 @@ export default function FullInicio({ props }) {
         <Grid item xs={12} style={{ textAlign: "center" }}>
           <h1>Datos Personales</h1>
         </Grid>
-        <Grid container xs direction="column" alignContent="center">
-          <Grid item xs>
-            <img
-              src={fperfil}
-              style={{
-                minWidth: 300,
-                width: "100%",
-                height: "100%",
-                maxWidth: 400,
-                maxHeight: 500,
-                backgroundSize: "cover",
-                borderRadius: "20%",
-                backgroundRepeat: "no-repeat",
-              }}
-            />
-          </Grid>
-          <Grid item xs>
-            <input
-              accept="image/*"
-              type="file"
-              onChange={metodoFoto}
-              id="btnfoto"
-              style={{ display: "none" }}
-            />
-            <label htmlFor="btnfoto">
-              <Button
-                disabled={!boolEditar}
-                variant="contained"
-                color="primary"
-                component="span"
-                startIcon={<CloudUploadIcon />}
-              >
-                Nueva Foto
-              </Button>
-            </label>
+        <Grid item xs>
+          <Grid container direction="column" alignContent="center">
+            <Grid item xs>
+              <img
+                src={fperfil}
+                style={{
+                  minWidth: 300,
+                  width: "100%",
+                  height: "100%",
+                  maxWidth: 400,
+                  maxHeight: 500,
+                  backgroundSize: "cover",
+                  borderRadius: "20%",
+                  backgroundRepeat: "no-repeat",
+                }}
+              />
+            </Grid>
+            <Grid item xs>
+              <input
+                accept="image/*"
+                type="file"
+                onChange={metodoFoto}
+                id="btnfoto"
+                style={{ display: "none" }}
+              />
+              <label htmlFor="btnfoto">
+                <Button
+                  disabled={!boolEditar}
+                  variant="contained"
+                  color="primary"
+                  component="span"
+                  startIcon={<CloudUploadIcon />}
+                >
+                  Nueva Foto
+                </Button>
+              </label>
+            </Grid>
           </Grid>
         </Grid>
-
-        <Grid
-          container
-          direction="column"
-          alignItems="flex-start"
-          xs
-          spacing={2}
-          alignContent="center"
-        >
-          <Grid item xs>
-            <TextField
-              className="input-field"
-              id="user"
-              label="Usuario"
-              margin="normal"
-              InputProps={{
-                readOnly: !boolEditar,
-              }}
-              variant="outlined"
-              value={txtuser}
-              onChange={inputChange}
-              required
-              error={errorTXT.user.length !== 0}
-              helperText={errorTXT.user}
-            />
-          </Grid>
-          <Grid item xs>
-            <TextField
-              className="input-field"
-              id="nombre"
-              label="Nombre Completo"
-              margin="normal"
-              InputProps={{
-                readOnly: !boolEditar,
-              }}
-              variant="outlined"
-              value={txtnombre}
-              onChange={inputChange}
-              required
-              error={errorTXT.nombre.length !== 0}
-              helperText={errorTXT.nombre}
-            />
-          </Grid>
-          <Grid item xs>
-            <TextField
-              id="password"
-              type="password"
-              label="Contraseña"
-              className="input-field"
-              margin="normal"
-              InputProps={{
-                readOnly: !boolEditar,
-              }}
-              variant="outlined"
-              value={txtpass}
-              onChange={inputChange}
-              required
-              error={errorTXT.password.length !== 0}
-              helperText={errorTXT.password}
-            />
-          </Grid>
-          <Grid container direction="row" justify="flex-start" xs spacing={4}>
-            <Grid item>
-              <Button
-                disabled={!boolEditar}
-                variant="contained"
-                color="primary"
-                onClick={() => {}}
-                startIcon={<SaveIcon />}
-              >
-                Guardar
-              </Button>
+        <Grid item xs>
+          <Grid container direction="column" alignContent="flex-start">
+            <Grid item xs>
+              <TextField
+                className="input-field"
+                id="user"
+                label="Usuario"
+                margin="normal"
+                InputProps={{
+                  readOnly: !boolEditar,
+                }}
+                variant="outlined"
+                value={txtuser}
+                onChange={inputChange}
+                required
+                error={errorTXT.user.length !== 0}
+                helperText={errorTXT.user}
+              />
             </Grid>
-            <Grid item>
-              {!boolEditar ? (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => setboolEditar(!boolEditar)}
-                >
-                  Editar
-                </Button>
-              ) : (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={cancelarEdit}
-                >
-                  Cancelar
-                </Button>
-              )}
+            <Grid item xs>
+              <TextField
+                className="input-field"
+                id="nombre"
+                label="Nombre Completo"
+                margin="normal"
+                InputProps={{
+                  readOnly: !boolEditar,
+                }}
+                variant="outlined"
+                value={txtnombre}
+                onChange={inputChange}
+                required
+                error={errorTXT.nombre.length !== 0}
+                helperText={errorTXT.nombre}
+              />
+            </Grid>
+            <Grid item xs>
+              <TextField
+                id="password"
+                type="password"
+                label="Contraseña"
+                className="input-field"
+                margin="normal"
+                InputProps={{
+                  readOnly: !boolEditar,
+                }}
+                variant="outlined"
+                value={txtpass}
+                onChange={inputChange}
+                required
+                error={errorTXT.password.length !== 0}
+                helperText={errorTXT.password}
+              />
+            </Grid>
+            <Grid item xs>
+              <Grid container direction="row" justify="flex-start" spacing={4}>
+                <Grid item xs>
+                  <Button
+                    disabled={!boolEditar}
+                    variant="contained"
+                    color="primary"
+                    onClick={() => {}}
+                    startIcon={<SaveIcon />}
+                  >
+                    Guardar
+                  </Button>
+                </Grid>
+                <Grid item xs>
+                  {!boolEditar ? (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => setboolEditar(!boolEditar)}
+                    >
+                      Editar
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={cancelarEdit}
+                    >
+                      Cancelar
+                    </Button>
+                  )}
+                </Grid>
+              </Grid>
             </Grid>
           </Grid>
         </Grid>
