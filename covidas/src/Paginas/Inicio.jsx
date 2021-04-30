@@ -21,6 +21,7 @@ const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
     padding: theme.spacing(2),
+    textAlign: "center",
   },
   paper: {
     padding: theme.spacing(2),
@@ -149,7 +150,7 @@ export default function FullInicio({ props }) {
         foto={session.foto}
         colorB={colorEstado()}
       />
-      <Grid container spacing={2}>
+      <Grid container>
         <Grid item xs={12} style={{ textAlign: "center" }}>
           <h1>Datos Personales</h1>
         </Grid>
@@ -158,8 +159,12 @@ export default function FullInicio({ props }) {
             <img
               src={fperfil}
               style={{
+                minWidth: 300,
+                width: "100%",
+                height: "100%",
                 maxWidth: 400,
-                maxHeight: 400,
+                maxHeight: 500,
+                backgroundSize: "cover",
                 borderRadius: "20%",
                 backgroundRepeat: "no-repeat",
               }}
