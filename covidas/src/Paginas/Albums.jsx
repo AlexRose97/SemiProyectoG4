@@ -17,7 +17,7 @@ import {
 } from "@material-ui/core";
 import Swal from "sweetalert2";
 import Credenciales from "../Sesion/Credenciales";
-import { getAlbums, getTraduccion } from "../endpoints";
+import { getAlbumsFotos, getTraduccion } from "../endpoints";
 
 export class Albums extends React.Component {
   render() {
@@ -79,9 +79,9 @@ export default function FullAlbums({ props }) {
   const [idiomatxt, setidiomatxt] = React.useState("");
 
   //---------------Cargar albumnes al mostrar pagina
-  var data = { usuario: "cristel" };
+  var data = { iduser: session.iduser };
   React.useEffect(() => {
-    fetch(getAlbums, {
+    fetch(getAlbumsFotos, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -94,7 +94,7 @@ export default function FullAlbums({ props }) {
         return json;
       })
       .then((json) => {
-        //console.log(json);
+        console.log(json);
         setconsulta(json);
       })
       .catch((error) => {

@@ -198,6 +198,7 @@ export default function FullInicio({ props }) {
           <Grid container direction="column" alignContent="flex-start">
             <Grid item xs>
               <TextField
+                style={{ minWidth: 300 }}
                 className="input-field"
                 id="user"
                 label="Usuario"

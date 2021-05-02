@@ -6,6 +6,7 @@ import "./style.css";
 import imgLogin from "./img/log.svg";
 import imgRegistro from "./img/register.svg";
 import Credenciales from "../Sesion/Credenciales";
+import { postRegistro, postLoginDatos } from "../endpoints";
 
 export class RegistroyLogin extends React.Component {
   render() {
@@ -70,13 +71,46 @@ export default function FullInicio({ props }) {
       validarInput(txtnombreR, "nombreR")
     ) {
       if (fcargada) {
-        Swal.fire({
-          title: "Bienvenido",
-          text: "Gracias por registrarte " + txtnombreR,
-          icon: "success",
-        }).then((result) => {
-          console.log("aca cambiar de ventana");
-        });
+        var data = {
+          nombre: txtnombreR,
+          user: txtuserR,
+          password: txtpassR1,
+          foto: fperfil,
+        };
+        fetch(postRegistro, {
+          method: "POST", // or 'PUT'
+          body: JSON.stringify(data), // data can be `string` or {object}!
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+          .then((res) => res.json())
+          .catch(function (error) {
+            alert(error);
+          })
+          .then((response) => {
+            if (response.status === 200) {
+              Swal.fire({
+                title: "Bienvenido",
+                text: response.msg,
+                icon: "success",
+              }).then((result) => {
+                //crear el json de session
+                const session = response.user;
+                console.log(response);
+                //guardar sesion en el localStorage
+                Credenciales.login(session);
+                //iniciar
+                props.history.push("/Inicio");
+              });
+            } else {
+              Swal.fire({
+                title: "Error!",
+                text: response.msg,
+                icon: "error",
+              });
+            }
+          });
       } else {
         Swal.fire({
           title: "Error!",
@@ -98,28 +132,44 @@ export default function FullInicio({ props }) {
     validarInput(txtuser, "user");
     validarInput(txtpass, "password");
     if (validarInput(txtuser, "user") && validarInput(txtpass, "password")) {
-      //crear el json de session
-      const session = {
-        idUser: 1,
-        alerta: 1,
-        user: "AlexRose",
-        nombre: "Alex Lopez",
-        password: "0000",
-        foto:
-          "https://www.cinemascomics.com/wp-content/uploads/2020/08/goku-dragon-ball-super-ultra-instinto.jpg",
-        estado: 0,
+      var data = {
+        user: txtuser,
+        password: txtpass,
       };
-      //guardar sesion en el localStorage
-      Credenciales.login(session);
-
-      Swal.fire({
-        title: "Exito",
-        text: "Bienvenido +nombre+",
-        icon: "success",
-      }).then((result) => {
-        //navegar hacia el inicio
-        props.history.push("/Inicio");
-      });
+      fetch(postLoginDatos, {
+        method: "POST", // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .catch(function (error) {
+          alert(error);
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            Swal.fire({
+              title: "Bienvenido",
+              text: response.msg,
+              icon: "success",
+            }).then((result) => {
+              //crear el json de session
+              const session = response.user;
+              console.log(response);
+              //guardar sesion en el localStorage
+              Credenciales.login(session);
+              //iniciar
+              props.history.push("/Inicio");
+            });
+          } else {
+            Swal.fire({
+              title: "Error!",
+              text: response.msg,
+              icon: "error",
+            });
+          }
+        });
     } else {
       Swal.fire({
         title: "Error!",

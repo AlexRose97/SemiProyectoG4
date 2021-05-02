@@ -18,6 +18,7 @@ import CloudUploadIcon from "@material-ui/icons/CloudUpload";
 import SaveIcon from "@material-ui/icons/Save";
 import Swal from "sweetalert2";
 import Credenciales from "../Sesion/Credenciales";
+import { getAlbums } from "../endpoints";
 
 export class Fotos extends React.Component {
   render() {
@@ -54,6 +55,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function FullFotos({ props }) {
   const classes = useStyles();
+  const [consulta, setconsulta] = React.useState("");
   //obtener datos de la session
   const [session, setsession] = React.useState(Credenciales.isAuthenticated());
   const [fCargada, setFCargada] = React.useState(Credenciales.PerfilDefault); //variable para desbloquear los input
@@ -67,6 +69,45 @@ export default function FullFotos({ props }) {
     txtnombre: "",
     txtalbum: "",
   });
+
+  //---------------Cargar albumnes combo box
+  var data = { iduser: session.iduser };
+  React.useEffect(() => {
+    fetch(getAlbums, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => response.json())
+      .then((json) => {
+        return json;
+      })
+      .then((json) => {
+        console.log(json);
+        setconsulta(json);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
+
+  const misAlbums = () => {
+    const listaalbums = [];
+    for (let index = 0; index < consulta.length; index++) {
+      const element = consulta[index];
+      if (element.tipo !== 0 && element.tipo !== 1) {
+        listaalbums.push(
+          <option key={index} value={element.idalbum}>
+            {"album " + element.nombre}
+          </option>
+        );
+      }
+    }
+    return listaalbums;
+  };
 
   //-------------Seleccionar Album
   const selecAlbum = (event) => {
@@ -143,52 +184,60 @@ export default function FullFotos({ props }) {
 
   //-------------guardar Foto
   const guardarFoto = () => {
-    if (txtdestino === "2") {
-      console.log("identifcar contagio");
-      validarInput(txtnombre, "txtnombre");
-      //subir una foto para identificar contagios
-      if (validarInput(txtnombre, "txtnombre")) {
-        Swal.fire({
-          title: "Exito",
-          text:
-            "La foto ha sido analizada, se le notificara a los usuarios identificados",
-          icon: "success",
-        }).then((result) => {
-          //actualizar session
-          session.estado = 2;
-          Credenciales.login(session);
-          //reiniciar campos
-          cancelarT();
-        });
+    if (fotocargada) {
+      if (txtdestino === "2") {
+        console.log("identifcar contagio");
+        validarInput(txtnombre, "txtnombre");
+        //subir una foto para identificar contagios
+        if (validarInput(txtnombre, "txtnombre")) {
+          Swal.fire({
+            title: "Exito",
+            text:
+              "La foto ha sido analizada, se le notificara a los usuarios identificados",
+            icon: "success",
+          }).then((result) => {
+            //actualizar session
+            session.estado = 2;
+            Credenciales.login(session);
+            //reiniciar campos
+            cancelarT();
+          });
+        } else {
+          Swal.fire({
+            title: "Error!",
+            text: "Completa los campos obligatorios",
+            icon: "error",
+          });
+        }
       } else {
-        Swal.fire({
-          title: "Error!",
-          text: "Completa los campos obligatorios",
-          icon: "error",
-        });
+        validarInput(txtnombre, "txtnombre");
+        validarInput(albumTxt, "txtalbum");
+        //subir una foto normal
+        if (
+          validarInput(txtnombre, "txtnombre") &&
+          validarInput(albumTxt, "txtalbum")
+        ) {
+          Swal.fire({
+            title: "Exito",
+            text: "La foto se ha guardado correctamente",
+            icon: "success",
+          }).then((result) => {
+            cancelarT(); //reiniciar campos
+          });
+        } else {
+          Swal.fire({
+            title: "Error!",
+            text: "Completa los campos obligatorios",
+            icon: "error",
+          });
+        }
       }
     } else {
-      validarInput(txtnombre, "txtnombre");
-      validarInput(albumTxt, "txtalbum");
-      //subir una foto normal
-      if (
-        validarInput(txtnombre, "txtnombre") &&
-        validarInput(albumTxt, "txtalbum")
-      ) {
-        Swal.fire({
-          title: "Exito",
-          text: "La foto se ha guardado correctamente",
-          icon: "success",
-        }).then((result) => {
-          cancelarT(); //reiniciar campos
-        });
-      } else {
-        Swal.fire({
-          title: "Error!",
-          text: "Completa los campos obligatorios",
-          icon: "error",
-        });
-      }
+      Swal.fire({
+        title: "Error!",
+        text: "Debes agregar una foto",
+        icon: "error",
+      });
     }
   };
 
@@ -238,7 +287,7 @@ export default function FullFotos({ props }) {
                   <FormControlLabel
                     value="1"
                     control={<Radio />}
-                    label="Album"
+                    label="Album de imagenes"
                   />
                   <FormControlLabel
                     value="2"
@@ -247,30 +296,42 @@ export default function FullFotos({ props }) {
                   />
                 </RadioGroup>
               </FormControl>
-              {txtdestino === "2" ? (
-                <p style={{ textAlign: "justify" }}>
-                  Al elegir la opción "Identificar Contagios" indicaras que
-                  actualmente eres positivo al covid19, se realizará un escaneo
-                  de la foto ingresada y se les notificará a los usuarios
-                  identificados que pueden estar contagiados.
-                </p>
-              ) : null}
             </Grid>
           </Grid>
         </Grid>
         <Grid item xs>
           <Grid container direction="column" alignItems="baseline" spacing={4}>
-            {txtdestino === "2" ? null : (
+            {txtdestino === "2" ? (
+              <Grid item>
+                <p style={{ textAlign: "justify", width: 310 }}>
+                  Al elegir la opción "Identificar Contagios" indicaras que
+                  actualmente eres positivo al covid19, se realizará un escaneo
+                  de la foto ingresada y se les notificará a los usuarios
+                  identificados que pueden estar contagiados.
+                </p>
+              </Grid>
+            ) : (
               <Grid item>
                 <FormControl error={errorTXT.txtalbum.length !== 0}>
-                  <Select native onChange={selecAlbum} value={albumTxt}>
+                  <Select native onChange={selecAlbum} value={albumTxt} style={{minWidth:300}}>
                     <option aria-label="None" value="">
                       Seleccionar Album...
                     </option>
-                    <option value={1}>album 1</option>
-                    <option value={2}>album 2</option>
-                    <option value={3}>album 3</option>
+                    {misAlbums()}
                   </Select>
+                  <Button
+                    color="primary"
+                    onClick={() => {
+                      Swal.fire({
+                        title: "Informacion",
+                        text:
+                          "para crear nuevos albumnes en dirigete a la pestaña de albumes",
+                        icon: "info",
+                      });
+                    }}
+                  >
+                    info
+                  </Button>
                   <FormHelperText>{errorTXT.txtalbum}</FormHelperText>
                 </FormControl>
               </Grid>

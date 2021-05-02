@@ -7,5 +7,9 @@
 const ip = "http://localhost:3030/api";
 module.exports = {
   // API getAlbums
-  getAlbums: ip + "/ListaAlbums",
+  postRegistro: ip + "/Registro",
+  postLoginDatos: ip + "/LoginDatos",
+  getAlbumsFotos: ip + "/ListaAlbumsFotos",
+  getAlbums: ip + "/listaAlbums",
+  getTraduccion: ip + "/Traducir/",
 };
