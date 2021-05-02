@@ -23,7 +23,12 @@ import {
 } from "@material-ui/core";
 import Swal from "sweetalert2";
 import Credenciales from "../Sesion/Credenciales";
-import { getAlbumsFotos, getTraduccion, postInsertarAlbum } from "../endpoints";
+import {
+  getAlbumsFotos,
+  getTraduccion,
+  postInsertarAlbum,
+  postDeleteAlbum,
+} from "../endpoints";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import SaveIcon from "@material-ui/icons/Save";
 
@@ -333,7 +338,48 @@ export default function FullAlbums({ props }) {
     }
   };
   //------------Eliminar Album
-  const eliminarAlbum = () => {};
+  const eliminarAlbum = () => {
+    if (validarInput(albumTxt, "txtalbum")) {
+      var data = {
+        idalbum: albumTxt,
+        iduser: session.iduser,
+      };
+      fetch(postDeleteAlbum, {
+        method: "POST", // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .catch(function (error) {
+          alert(error);
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            Swal.fire({
+              title: "Exito",
+              text: response.msg,
+              icon: "success",
+            }).then((result) => {
+              reiniciarTodo();
+            });
+          } else {
+            Swal.fire({
+              title: "Error!",
+              text: response.msg,
+              icon: "error",
+            });
+          }
+        });
+    } else {
+      Swal.fire({
+        title: "Error!",
+        text: "Debes seleccionar un album",
+        icon: "error",
+      });
+    }
+  };
 
   return (
     <div className={classes.root}>

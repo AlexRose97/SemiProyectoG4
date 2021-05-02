@@ -270,6 +270,28 @@ app.post("/api/InsertarAlbum", async function (req, res) {
   }
 });
 
+//-------------Insertar Album------------
+app.post("/api/EliminarAlbum", async function (req, res) {
+  const { idalbum } = req.body;
+  const { iduser } = req.body;
+  try {
+    //---------------------Verificar si existe
+    let query = "Delete from album where iduser=? and idalbum=?";
+    let [rows, fields] = await connProme.query(query, [iduser, idalbum]);
+    //---------------------respuesta al cliente
+    return res.send({
+      status: 200,
+      msg: "Album Eliminado",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.send({
+      status: 500,
+      msg: "Ocurrio error en el server",
+    });
+  }
+});
+
 //-------------Insertar Imagen------------
 app.post("/api/InsertarImagen", async function (req, res) {
   const { descripcion } = req.body;
