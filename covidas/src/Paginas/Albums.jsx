@@ -79,7 +79,7 @@ export default function FullAlbums({ props }) {
   const [idiomatxt, setidiomatxt] = React.useState("");
 
   //---------------Cargar albumnes al mostrar pagina
-  var data = { usuario: "Horacio.Ciraiz" };
+  var data = { usuario: "cristel" };
   React.useEffect(() => {
     fetch(getAlbums, {
       method: "POST",
@@ -94,7 +94,7 @@ export default function FullAlbums({ props }) {
         return json;
       })
       .then((json) => {
-        console.log(json);
+        //console.log(json);
         setconsulta(json);
       })
       .catch((error) => {
@@ -245,7 +245,7 @@ export default function FullAlbums({ props }) {
             />
           </Typography>
           <Typography gutterBottom>{infoIMG.descripcion}</Typography>
-          <Typography gutterBottom align={"center"}>
+          <Typography gutterBottom component="div" align={"center"}>
             <Select
               native
               onChange={selecIdioma}
@@ -255,7 +255,9 @@ export default function FullAlbums({ props }) {
                 id: "filled-age-native-simple",
               }}
             >
-              <option aria-label="None" value="" />
+              <option aria-label="None" value="">
+                Seleccionar idioma...
+              </option>
               <option value={"Ingles"}>Ingles</option>
               <option value={"Español"}>Español</option>
               <option value={"Ruso"}>Ruso</option>

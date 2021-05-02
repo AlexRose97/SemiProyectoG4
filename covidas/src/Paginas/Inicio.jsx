@@ -72,7 +72,7 @@ export default function FullInicio({ props }) {
         Swal.fire({
           title: "Advertencia!",
           text:
-            "Es posible que estuvieras en contacto con una persona positiva al covid, revisa la seccion de albums para averiguarlo, y la seccion de ayuda para ver los pasos a seguir si fuera el caso",
+            "Es posible que estuvieras en contacto con una persona positiva al covid, revisa la sección de albums para averiguarlo, y la seccion de ayuda para ver los pasos a seguir si fuera el caso",
           icon: "warning",
         }).then((result) => {
           session.alerta = 0;
@@ -81,7 +81,7 @@ export default function FullInicio({ props }) {
         Swal.fire({
           title: "Advertencia!",
           text:
-            "Eres una persona positiva al covid revisa la seccion ayuda para ver los pasos a seguir",
+            "Eres una persona positiva al covid revisa la sección ayuda para ver los pasos a seguir",
           icon: "warning",
         }).then((result) => {
           session.alerta = 0;
@@ -158,6 +158,7 @@ export default function FullInicio({ props }) {
           <Grid container direction="column" alignContent="center">
             <Grid item xs>
               <img
+                alt=""
                 src={fperfil}
                 style={{
                   minWidth: 300,

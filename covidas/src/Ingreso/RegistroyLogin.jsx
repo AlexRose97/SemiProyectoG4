@@ -107,7 +107,7 @@ export default function FullInicio({ props }) {
         password: "0000",
         foto:
           "https://www.cinemascomics.com/wp-content/uploads/2020/08/goku-dragon-ball-super-ultra-instinto.jpg",
-        estado: 2,
+        estado: 0,
       };
       //guardar sesion en el localStorage
       Credenciales.login(session);
