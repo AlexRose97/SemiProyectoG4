@@ -1,12 +1,21 @@
 import React from "react";
-import { Button, IconButton, TextField } from "@material-ui/core";
+import {
+  Button,
+  IconButton,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from "@material-ui/core";
+import Webcam from "react-webcam";
 import { PhotoCamera } from "@material-ui/icons";
 import Swal from "sweetalert2";
 import "./style.css";
 import imgLogin from "./img/log.svg";
 import imgRegistro from "./img/register.svg";
 import Credenciales from "../Sesion/Credenciales";
-import { postRegistro, postLoginDatos } from "../endpoints";
+import { postRegistro, postLoginDatos, postLoginFoto } from "../endpoints";
 
 export class RegistroyLogin extends React.Component {
   render() {
@@ -18,8 +27,15 @@ export class RegistroyLogin extends React.Component {
   }
 }
 
-//const errorTXT = { user: "", password: "" };
+const videoConstraints = {
+  width: 1280,
+  height: 720,
+  facingMode: "user",
+};
+
 export default function FullInicio({ props }) {
+  const [open, setOpen] = React.useState(false);
+  const [capturaF, setcapturaF] = React.useState("");
   //variables registro
   const [fperfil, setfperfil] = React.useState(Credenciales.PerfilDefault);
   const [fcargada, setfcargada] = React.useState(false);
@@ -92,12 +108,12 @@ export default function FullInicio({ props }) {
             if (response.status === 200) {
               Swal.fire({
                 title: "Bienvenido",
-                text: response.msg,
+                text:
+                  "Gracias por unirte a la comunidad " + response.user.nombre,
                 icon: "success",
               }).then((result) => {
                 //crear el json de session
                 const session = response.user;
-                console.log(response);
                 //guardar sesion en el localStorage
                 Credenciales.login(session);
                 //iniciar
@@ -151,7 +167,7 @@ export default function FullInicio({ props }) {
           if (response.status === 200) {
             Swal.fire({
               title: "Bienvenido",
-              text: response.msg,
+              text: response.user.nombre,
               icon: "success",
             }).then((result) => {
               //crear el json de session
@@ -221,6 +237,64 @@ export default function FullInicio({ props }) {
     container.classList.remove("sign-up-mode");
   };
 
+  //-------cerrar cuadro emergente de fotos
+  const handleClose = () => {
+    setcapturaF("");
+    setOpen(false);
+  };
+  //------mostrar Camara
+  const mostrarCarmara = () => {
+    setOpen(true);
+  };
+  const webcamRef = React.useRef(null);
+
+  //--------Tomar Foto e ingresar
+  const capture = () => {
+    //realizar la captura y mostrarla
+    var caputuraCamara = webcamRef.current.getScreenshot();
+    setcapturaF(caputuraCamara);
+    //realizar la peticion al server
+    var data = {
+      foto: caputuraCamara,
+    };
+    fetch(postLoginFoto, {
+      method: "POST", // or 'PUT'
+      body: JSON.stringify(data), // data can be `string` or {object}!
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => res.json())
+      .catch(function (error) {
+        alert(error);
+      })
+      .then((response) => {
+        setOpen(false);
+        if (response.status === 200) {
+          Swal.fire({
+            title: "Bienvenido",
+            text: response.user.nombre,
+            icon: "success",
+          }).then((result) => {
+            //crear el json de session
+            const session = response.user;
+            //guardar sesion en el localStorage
+            Credenciales.login(session);
+            //iniciar
+            props.history.push("/Inicio");
+          });
+        } else {
+          Swal.fire({
+            title: "Error!",
+            text: response.msg,
+            icon: "error",
+          }).then((result) => {
+            setOpen(true);
+          });
+        }
+      });
+  };
+
   return (
     <div className="container">
       <div className="forms-container">
@@ -258,7 +332,11 @@ export default function FullInicio({ props }) {
 
             <p className="social-text">
               O ingresa utilizando la camara
-              <IconButton color="primary" style={{ color: "#17a178" }}>
+              <IconButton
+                color="primary"
+                style={{ color: "#17a178" }}
+                onClick={mostrarCarmara}
+              >
                 <PhotoCamera />
               </IconButton>
             </p>
@@ -373,6 +451,35 @@ export default function FullInicio({ props }) {
           <img src={imgRegistro} className="image" alt="" />
         </div>
       </div>
+      <Dialog onClose={handleClose} open={open} scroll={"paper"}>
+        <DialogTitle onClose={handleClose} style={{ textAlign: "center" }}>
+          Tomate una foto para ingresar
+        </DialogTitle>
+        {capturaF ? (
+          <DialogContent dividers align={"center"}>
+            <img width={"100%"} height={"100%"} src={capturaF} alt="" />
+          </DialogContent>
+        ) : (
+          <DialogContent dividers align={"center"}>
+            <Webcam
+              audio={false}
+              height={"100%"}
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              width={"100%"}
+              videoConstraints={videoConstraints}
+            />
+            <button className="btn" onClick={capture}>
+              Tomar Foto
+            </button>
+          </DialogContent>
+        )}
+        <DialogActions>
+          <button className="btn" onClick={handleClose}>
+            Cancelar
+          </button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
