@@ -12,12 +12,20 @@ import {
   GridListTile,
   GridListTileBar,
   Paper,
-  Select,
   Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  TextField,
+  FormControl,
+  Select,
+  FormHelperText,
 } from "@material-ui/core";
 import Swal from "sweetalert2";
 import Credenciales from "../Sesion/Credenciales";
-import { getAlbumsFotos, getTraduccion } from "../endpoints";
+import { getAlbumsFotos, getTraduccion, postInsertarAlbum } from "../endpoints";
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import SaveIcon from "@material-ui/icons/Save";
 
 export class Albums extends React.Component {
   render() {
@@ -61,6 +69,14 @@ export default function FullAlbums({ props }) {
   const classes = useStyles();
   //obtener datos de la session
   const [session, setsession] = React.useState(Credenciales.isAuthenticated());
+  const [recargar, setrecargar] = React.useState(0);
+
+  const [albumTxt, setalbumTxt] = React.useState("");
+  const [txtnombre, settxtnombre] = React.useState("");
+  const [errorTXT, seterrorTXT] = React.useState({
+    txtnombre: "",
+    txtalbum: "",
+  });
 
   //-----------agregar color de barra por estado
   const colorEstado = () => {
@@ -100,7 +116,7 @@ export default function FullAlbums({ props }) {
       .catch((error) => {
         console.error(error);
       });
-  }, []);
+  }, [recargar]);
   const GenerarFotos = (listFots) => {
     const tileData = [];
     if (listFots !== undefined) {
@@ -221,6 +237,104 @@ export default function FullAlbums({ props }) {
     setidiomatxt("");
   };
 
+  //---------cargar en variables el texto ingresado
+  const inputChange = (e) => {
+    let { id, value } = e.target;
+    if (id === "txtnombre") {
+      settxtnombre(value);
+      //validarInput(value, "txtnombre");
+    }
+  };
+  const validarInput = (valor, campo) => {
+    errorTXT[campo] = "";
+    var result = true;
+    if (valor === "") {
+      errorTXT[campo] = "Información Requerida";
+      result = false;
+    }
+    //modificar el estado del json
+    seterrorTXT({ ...errorTXT });
+    return result;
+  };
+
+  //---------------cargar combobox
+  const misAlbums = () => {
+    const listaalbums = [];
+    for (let index = 0; index < consulta.length; index++) {
+      const element = consulta[index];
+      if (element.tipo !== 0 && element.tipo !== 1) {
+        listaalbums.push(
+          <option key={index} value={element.idalbum}>
+            {"album " + element.nombre}
+          </option>
+        );
+      }
+    }
+    return listaalbums;
+  };
+  //-------------Seleccionar Album
+  const selecAlbum = (event) => {
+    const name = event.target.value;
+    setalbumTxt(name);
+    validarInput(name, "txtalbum");
+  };
+
+  const reiniciarTodo = () => {
+    setalbumTxt("");
+    settxtnombre("");
+    seterrorTXT({
+      txtnombre: "",
+      txtalbum: "",
+    });
+    setrecargar(recargar + 1);
+  };
+
+  //------------Crear Album
+  const crearAlbum = () => {
+    if (validarInput(txtnombre, "txtnombre")) {
+      var data = {
+        nombre: txtnombre,
+        iduser: session.iduser,
+      };
+      fetch(postInsertarAlbum, {
+        method: "POST", // or 'PUT'
+        body: JSON.stringify(data), // data can be `string` or {object}!
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((res) => res.json())
+        .catch(function (error) {
+          alert(error);
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            Swal.fire({
+              title: "Exito",
+              text: response.msg,
+              icon: "success",
+            }).then((result) => {
+              reiniciarTodo();
+            });
+          } else {
+            Swal.fire({
+              title: "Error!",
+              text: response.msg,
+              icon: "error",
+            });
+          }
+        });
+    } else {
+      Swal.fire({
+        title: "Error!",
+        text: "Debes Ingresar el nombre del Album",
+        icon: "error",
+      });
+    }
+  };
+  //------------Eliminar Album
+  const eliminarAlbum = () => {};
+
   return (
     <div className={classes.root}>
       <Navbar
@@ -229,7 +343,100 @@ export default function FullAlbums({ props }) {
         foto={Credenciales.isAuthenticated().foto}
         colorB={colorEstado()}
       />
-      <Grid container spacing={4}>
+      <Grid container>
+        <Grid item xs={12}>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <h1>Gestionar álbumes</h1>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Grid
+                container
+                spacing={8}
+                direction="row"
+                justify="center"
+                alignItems="center"
+              >
+                <Grid item xs>
+                  <Grid
+                    container
+                    direction="row"
+                    justify="center"
+                    alignItems="center"
+                    spacing={2}
+                  >
+                    <Grid item xs>
+                      <TextField
+                        style={{ minWidth: 300 }}
+                        className="input-field"
+                        id="txtnombre"
+                        label="Nombre del album"
+                        margin="normal"
+                        variant="outlined"
+                        value={txtnombre}
+                        onChange={inputChange}
+                        required
+                        error={errorTXT.txtnombre.length !== 0}
+                        helperText={errorTXT.txtnombre}
+                      />
+                    </Grid>
+                    <Grid item xs>
+                      <Button
+                        variant="contained"
+                        onClick={crearAlbum}
+                        color="primary"
+                        startIcon={<SaveIcon />}
+                      >
+                        Crear Album
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Grid>
+                <Grid item xs>
+                  <Grid
+                    xs
+                    container
+                    direction="row"
+                    justify="center"
+                    alignItems="center"
+                    spacing={2}
+                  >
+                    <Grid item xs>
+                      <FormControl error={errorTXT.txtalbum.length !== 0}>
+                        <Select
+                          native
+                          onChange={selecAlbum}
+                          value={albumTxt}
+                          style={{ minWidth: 300 }}
+                        >
+                          <option aria-label="None" value="">
+                            Seleccionar Album...
+                          </option>
+                          {misAlbums()}
+                        </Select>
+                        <FormHelperText>{errorTXT.txtalbum}</FormHelperText>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs>
+                      <Button
+                        variant="contained"
+                        onClick={eliminarAlbum}
+                        style={{ backgroundColor: "#c02748", color: "white" }}
+                        startIcon={<SaveIcon />}
+                      >
+                        Eliminar Album
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </Grid>
+            </AccordionDetails>
+          </Accordion>
+        </Grid>
         {GenerarAlbums()}
       </Grid>
       <Dialog onClose={handleClose} open={open} scroll={"paper"}>

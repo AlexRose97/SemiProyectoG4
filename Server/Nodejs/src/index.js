@@ -234,6 +234,182 @@ app.post("/api/ListaAlbums", async function (req, res) {
   }
 });
 
+//-------------Insertar Album------------
+app.post("/api/InsertarAlbum", async function (req, res) {
+  const { nombre } = req.body;
+  const { iduser } = req.body;
+  try {
+    //---------------------Verificar si existe
+    let query = "Select * from album where nombre=?";
+    let [rows, fields] = await connProme.query(
+      query,
+      String(nombre).toLowerCase()
+    );
+    if (rows.length == 0) {
+      //---------------------Crear el album en BD
+      let query = "INSERT INTO album (nombre,tipo,iduser) VALUES (?,?,?);";
+      let [rows, fields] = await connProme.execute(query, [nombre, 2, iduser]);
+
+      //---------------------respuesta al cliente
+      return res.send({
+        status: 200,
+        msg: "Album Creado",
+      });
+    } else {
+      return res.send({
+        status: 500,
+        msg: "Ya existe el album:" + nombre,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.send({
+      status: 500,
+      msg: "Ocurrio error en el server",
+    });
+  }
+});
+
+//-------------Insertar Imagen------------
+app.post("/api/InsertarImagen", async function (req, res) {
+  const { descripcion } = req.body;
+  const { nombre } = req.body;
+  const { foto } = req.body;
+  const { iduser } = req.body;
+  const { idalbum } = req.body;
+  try {
+    //---------------------------------crear la imagen
+    var sub = foto.split(";");
+    var extension = "." + sub[0].replace(/^data:image\//, "");
+    let urlbucket =
+      "https://practica1-g4-imagenes.s3.us-east-2.amazonaws.com/Fotos_Publicadas/";
+    let NombreImagen = "Foto" + new Date().getTime() + extension;
+    let DireccionPerfil = urlbucket + NombreImagen;
+    //-----------------------------------subir al s3
+    var imagenperfil = foto;
+    var ruta = imagenperfil.replace(/^data:image\/[a-z]+;base64,/, "");
+    let buff = new Buffer.from(ruta, "base64");
+    const params = {
+      Bucket: "practica1-g4-imagenes",
+      Key: "Fotos_Publicadas/" + NombreImagen,
+      Body: buff,
+      ContentType: "image",
+      ACL: "public-read",
+    };
+    const putResult = await s3.putObject(params).promise();
+    console.log(putResult);
+
+    //-------------agregar a la base de datos
+    let query =
+      "INSERT INTO fotografia (nombre,urlfoto,descripcion,idalbum) VALUES (?,?,?,?);";
+    let [rows, fields] = await connProme.execute(query, [
+      nombre,
+      DireccionPerfil,
+      descripcion,
+      idalbum,
+    ]);
+
+    //---------------------respuesta al cliente
+    return res.send({
+      status: 200,
+      msg: "Foto Guardada",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.send({
+      status: 500,
+      msg: "Ocurrio error en el server",
+    });
+  }
+});
+
+//-------------Insertar Imagen------------
+app.post("/api/InsertarImagenCovid", async function (req, res) {
+  const { descripcion } = req.body;
+  const { nombre } = req.body;
+  const { foto } = req.body;
+  const { idiclient } = req.body;
+  try {
+    //---------------------------------crear la imagen
+    var sub = foto.split(";");
+    var extension = "." + sub[0].replace(/^data:image\//, "");
+    let urlbucket =
+      "https://practica1-g4-imagenes.s3.us-east-2.amazonaws.com/Fotos_Publicadas/";
+    let NombreImagen = "Foto" + new Date().getTime() + extension;
+    let DireccionPerfil = urlbucket + NombreImagen;
+    //-----------------------------------subir al s3
+    var imagenperfil = foto;
+    var ruta = imagenperfil.replace(/^data:image\/[a-z]+;base64,/, "");
+    let buff = new Buffer.from(ruta, "base64");
+    const params = {
+      Bucket: "practica1-g4-imagenes",
+      Key: "Fotos_Publicadas/" + NombreImagen,
+      Body: buff,
+      ContentType: "image",
+      ACL: "public-read",
+    };
+    const putResult = await s3.putObject(params).promise();
+    console.log(putResult);
+
+    //---------------------------analizar las etiquetas
+    var datarek = {
+      Image: {
+        Bytes: buff,
+      },
+      MaxLabels: 5,
+    };
+    let etiquetas = (await rek.detectLabels(datarek).promise()).Labels;
+
+    //recorrer las etiquetas
+    for (let index = 0; index < etiquetas.length; index++) {
+      //crear los albumnes
+      //obtener el id del album
+      let query = "SELECT idbook FROM book where idiclient =? and nombre=?";
+      let [rows, fields] = await connProme.execute(query, [
+        idiclient,
+        etiquetas[index].Name,
+      ]);
+      if (rows.length == 0) {
+        //crear el album db
+        query = "INSERT INTO book (nombre, tipo,idiclient) VALUES (?, ?,?);";
+        [rows, fields] = await connProme.execute(query, [
+          etiquetas[index].Name,
+          1,
+          idiclient,
+        ]);
+
+        //obtener el id del album
+        query = "SELECT idbook FROM book where idiclient =? and nombre=?";
+        [rows, fields] = await connProme.execute(query, [
+          idiclient,
+          etiquetas[index].Name,
+        ]);
+      }
+      //insertar la imagen db
+      query =
+        "INSERT INTO picture (nombre,urlfoto,descripcion,idbook) VALUES (?,?,?,?);";
+      [rows, fields] = await connProme.execute(query, [
+        nombre,
+        DireccionPerfil,
+        descripcion,
+        rows[0].idbook,
+      ]);
+    }
+
+    //---------------------respuesta al cliente
+    return res.send({
+      status: 200,
+      msg: "Foto Guardada",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.send({
+      status: 500,
+      msg: "Ocurrio error en el server",
+    });
+  }
+});
+
 //-------------Traduccion Foto------------
 app.post("/api/Traducir", async function (req, res) {
   const { idioma } = req.body;

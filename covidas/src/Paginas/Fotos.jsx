@@ -11,14 +11,13 @@ import {
   FormControlLabel,
   FormLabel,
   Select,
-  Typography,
   FormHelperText,
 } from "@material-ui/core";
 import CloudUploadIcon from "@material-ui/icons/CloudUpload";
 import SaveIcon from "@material-ui/icons/Save";
 import Swal from "sweetalert2";
 import Credenciales from "../Sesion/Credenciales";
-import { getAlbums } from "../endpoints";
+import { getAlbums, postImagen, postImagenCovid } from "../endpoints";
 
 export class Fotos extends React.Component {
   render() {
@@ -71,8 +70,8 @@ export default function FullFotos({ props }) {
   });
 
   //---------------Cargar albumnes combo box
-  var data = { iduser: session.iduser };
   React.useEffect(() => {
+    var data = { iduser: session.iduser };
     fetch(getAlbums, {
       method: "POST",
       headers: {
@@ -198,6 +197,7 @@ export default function FullFotos({ props }) {
           }).then((result) => {
             //actualizar session
             session.estado = 2;
+            session.alerta = 1;
             Credenciales.login(session);
             //reiniciar campos
             cancelarT();
@@ -217,13 +217,41 @@ export default function FullFotos({ props }) {
           validarInput(txtnombre, "txtnombre") &&
           validarInput(albumTxt, "txtalbum")
         ) {
-          Swal.fire({
-            title: "Exito",
-            text: "La foto se ha guardado correctamente",
-            icon: "success",
-          }).then((result) => {
-            cancelarT(); //reiniciar campos
-          });
+          var data = {
+            descripcion: newdescripcion,
+            nombre: txtnombre,
+            foto: fCargada,
+            iduser: session.iduser,
+            idalbum: albumTxt,
+          };
+          fetch(postImagen, {
+            method: "POST", // or 'PUT'
+            body: JSON.stringify(data), // data can be `string` or {object}!
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then((res) => res.json())
+            .catch(function (error) {
+              alert(error);
+            })
+            .then((response) => {
+              if (response.status === 200) {
+                Swal.fire({
+                  title: "Exito",
+                  text: response.msg,
+                  icon: "success",
+                }).then((result) => {
+                  cancelarT(); //reiniciar campos
+                });
+              } else {
+                Swal.fire({
+                  title: "Error!",
+                  text: response.msg,
+                  icon: "error",
+                });
+              }
+            });
         } else {
           Swal.fire({
             title: "Error!",
@@ -313,7 +341,12 @@ export default function FullFotos({ props }) {
             ) : (
               <Grid item>
                 <FormControl error={errorTXT.txtalbum.length !== 0}>
-                  <Select native onChange={selecAlbum} value={albumTxt} style={{minWidth:300}}>
+                  <Select
+                    native
+                    onChange={selecAlbum}
+                    value={albumTxt}
+                    style={{ minWidth: 300 }}
+                  >
                     <option aria-label="None" value="">
                       Seleccionar Album...
                     </option>
