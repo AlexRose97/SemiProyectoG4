@@ -301,11 +301,11 @@ app.post("/api/InsertarAlbum", async function (req, res) {
   const { iduser } = req.body;
   try {
     //---------------------Verificar si existe
-    let query = "Select * from album where nombre=?";
-    let [rows, fields] = await connProme.query(
-      query,
-      String(nombre).toLowerCase()
-    );
+    let query = "Select * from album where nombre=? and iduser=?";
+    let [rows, fields] = await connProme.query(query, [
+      String(nombre).toLowerCase(),
+      iduser,
+    ]);
     if (rows.length == 0) {
       //---------------------Crear el album en BD
       let query = "INSERT INTO album (nombre,tipo,iduser) VALUES (?,?,?);";
@@ -411,7 +411,8 @@ app.post("/api/InsertarImagenCovid", async function (req, res) {
   const { descripcion } = req.body;
   const { nombre } = req.body;
   const { foto } = req.body;
-  const { idiclient } = req.body;
+  const { iduser } = req.body;
+  const { user } = req.body;
   try {
     //---------------------------------crear la imagen
     var sub = foto.split(";");
@@ -424,7 +425,7 @@ app.post("/api/InsertarImagenCovid", async function (req, res) {
     var imagenperfil = foto;
     var ruta = imagenperfil.replace(/^data:image\/[a-z]+;base64,/, "");
     let buff = new Buffer.from(ruta, "base64");
-    const params = {
+    var params = {
       Bucket: "practica1-g4-imagenes",
       Key: "Fotos_Publicadas/" + NombreImagen,
       Body: buff,
@@ -434,54 +435,93 @@ app.post("/api/InsertarImagenCovid", async function (req, res) {
     const putResult = await s3.putObject(params).promise();
     console.log(putResult);
 
-    //---------------------------analizar las etiquetas
-    var datarek = {
-      Image: {
-        Bytes: buff,
-      },
-      MaxLabels: 5,
-    };
-    let etiquetas = (await rek.detectLabels(datarek).promise()).Labels;
+    //cambiar usuario a estado covid estado = 2,alerta = 1;
+    let query = "UPDATE usuario  set estado=?, alerta=? where iduser=?";
+    let [rows, fields] = await connProme.execute(query, [2, 1, iduser]);
+    //buscar lista de usuarios en la foto
+    var contagiados = [];
+    query = "Select * from usuario";
+    [rows, fields] = await connProme.query(query);
+    if (rows.length != 0) {
+      //----------recorrer los perfiles de db
+      for (let i = 0; i < rows.length; i++) {
+        const fotodb = rows[i].foto;
+        //base64 from url
+        let image = await axios.get(fotodb, {
+          responseType: "arraybuffer",
+        });
+        let returnedB64 = Buffer.from(image.data, "base64");
 
-    //recorrer las etiquetas
-    for (let index = 0; index < etiquetas.length; index++) {
-      //crear los albumnes
-      //obtener el id del album
-      let query = "SELECT idbook FROM book where idiclient =? and nombre=?";
-      let [rows, fields] = await connProme.execute(query, [
-        idiclient,
-        etiquetas[index].Name,
-      ]);
+        //----------comparar foto con fotodb
+        params = {
+          SourceImage: {
+            Bytes: returnedB64,
+          },
+          TargetImage: {
+            Bytes: buff,
+          },
+          SimilarityThreshold: "80",
+        };
+        let resultCompa = (await rek.compareFaces(params).promise())
+          .FaceMatches;
+        if (resultCompa.length > 0) {
+          contagiados.push(rows[i].iduser);
+        }
+      }
+    }
+    contagiados.indexOf(iduser) === -1 ? contagiados.push(iduser) : null; //agregar al usuario que la subio
+    //crearles el album
+    for (let index = 0; index < contagiados.length; index++) {
+      //---------------------Verificar si existe
+      query = "Select * from album where tipo=? and iduser=?";
+      [rows, fields] = await connProme.query(query, [1, contagiados[index]]);
       if (rows.length == 0) {
-        //crear el album db
-        query = "INSERT INTO book (nombre, tipo,idiclient) VALUES (?, ?,?);";
-        [rows, fields] = await connProme.execute(query, [
-          etiquetas[index].Name,
+        //si no existe se crea
+        //---------------------Crear el album en BD
+        query = "INSERT INTO album (nombre,tipo,iduser) VALUES (?,?,?);";
+        await connProme.execute(query, [
+          "Registro Contagio",
           1,
-          idiclient,
-        ]);
-
-        //obtener el id del album
-        query = "SELECT idbook FROM book where idiclient =? and nombre=?";
-        [rows, fields] = await connProme.execute(query, [
-          idiclient,
-          etiquetas[index].Name,
+          contagiados[index],
         ]);
       }
-      //insertar la imagen db
+      //obtener el id que le genera la base de datos
+      query = "SELECT idalbum FROM album where iduser =? and tipo=?;";
+      [rows, fields] = await connProme.execute(query, [contagiados[index], 1]);
+      let idalbum = rows[0].idalbum;
+      //subirle la foto
       query =
-        "INSERT INTO picture (nombre,urlfoto,descripcion,idbook) VALUES (?,?,?,?);";
-      [rows, fields] = await connProme.execute(query, [
+        "INSERT INTO fotografia (nombre,urlfoto,descripcion,idalbum) VALUES (?,?,?,?);";
+      await connProme.execute(query, [
         nombre,
         DireccionPerfil,
-        descripcion,
-        rows[0].idbook,
+        'Foto subida por"' + user + "-" + descripcion,
+        idalbum,
       ]);
+      //si no tienen covid cambiar a estado = 1,alerta = 1
+      query =
+        "UPDATE usuario  set estado=?, alerta=? where iduser=? and estado=?";
+      await connProme.execute(query, [1, 1, contagiados[index], 0]);
     }
+
+    /*
+
+    //-------------agregar a la base de datos
+    let query =
+      "INSERT INTO fotografia (nombre,urlfoto,descripcion,idalbum) VALUES (?,?,?,?);";
+    let [rows, fields] = await connProme.execute(query, [
+      nombre,
+      DireccionPerfil,
+      descripcion,
+      idalbum,
+    ]);
+
+    */
 
     //---------------------respuesta al cliente
     return res.send({
       status: 200,
+      contagiados: JSON.stringify(contagiados),
       msg: "Foto Guardada",
     });
   } catch (error) {

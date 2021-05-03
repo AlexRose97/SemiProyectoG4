@@ -189,19 +189,48 @@ export default function FullFotos({ props }) {
         validarInput(txtnombre, "txtnombre");
         //subir una foto para identificar contagios
         if (validarInput(txtnombre, "txtnombre")) {
-          Swal.fire({
-            title: "Exito",
-            text:
-              "La foto ha sido analizada, se le notificara a los usuarios identificados",
-            icon: "success",
-          }).then((result) => {
-            //actualizar session
-            session.estado = 2;
-            session.alerta = 1;
-            Credenciales.login(session);
-            //reiniciar campos
-            cancelarT();
-          });
+          var data = {
+            descripcion: newdescripcion,
+            nombre: txtnombre,
+            foto: fCargada,
+            iduser: session.iduser,
+            user: session.user,
+          };
+          fetch(postImagenCovid, {
+            method: "POST", // or 'PUT'
+            body: JSON.stringify(data), // data can be `string` or {object}!
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then((res) => res.json())
+            .catch(function (error) {
+              alert(error);
+            })
+            .then((response) => {
+              if (response.status === 200) {
+                Swal.fire({
+                  title: "Exito",
+                  text:
+                    "La foto ha sido analizada, se le notificara a los usuarios identificados",
+                  icon: "success",
+                }).then((result) => {
+                  console.log(response);
+                  //actualizar session
+                  session.estado = 2;
+                  session.alerta = 1;
+                  Credenciales.login(session);
+                  //reiniciar campos
+                  //cancelarT();
+                });
+              } else {
+                Swal.fire({
+                  title: "Error!",
+                  text: response.msg,
+                  icon: "error",
+                });
+              }
+            });
         } else {
           Swal.fire({
             title: "Error!",
