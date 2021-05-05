@@ -4,10 +4,22 @@ import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Credenciales from "../Sesion/Credenciales";
 
+// importaciones extra-----
+import Amplify, { Interactions } from "aws-amplify";
+import { ChatBot, AmplifyTheme } from "aws-amplify-react";
+import awsconfig from "../aws-export";
+Amplify.configure(awsconfig);
+
 export class Ayuda extends React.Component {
   render() {
     return (
       <div style={{ minWidth: "100%" }}>
+        
+        <Navbar
+          props={this.props}
+          tituloP={"Inicio"}
+          foto={Credenciales.Perfil}
+        />
         <FullAyuda props={this.props} />
       </div>
     );
@@ -41,6 +53,16 @@ export default function FullAyuda({ props }) {
   const classes = useStyles();
   //obtener datos de la session
   const [session, setsession] = React.useState(Credenciales.isAuthenticated());
+  
+  const handleComplete = (err, confirmation) => {
+    if (err) {
+      alert("Bot conversation failed");
+      return;
+    }
+
+    //alert("Success: " + JSON.stringify(confirmation, null, 2));
+    return "¿Puedo puedo ayudar en algo mas?";
+  };
 
   //-----------agregar color de barra por estado
   const colorEstado = () => {
@@ -61,13 +83,15 @@ export default function FullAyuda({ props }) {
         foto={Credenciales.isAuthenticated().foto}
         colorB={colorEstado()}
       />
-      <h1>hola</h1>
-      <Button variant="contained" color="primary">
-        Primary
-      </Button>
-      <Button variant="contained" color="secondary">
-        Secondary
-      </Button>
+      <h1>ChatBot de Ayuda COVID-19</h1>
+      <ChatBot
+        title="My ChatBot"
+        botName="Tecnologia"
+        welcomeMessage="Hola, Soy un chatbot para ayudarte a entender más sobre el COVID-19"
+        onComplete={handleComplete}
+        //clearOnComplete={true}
+        conversationModeOn={true}
+      />
     </div>
   );
 }
